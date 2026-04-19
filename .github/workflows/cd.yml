@@ -2,7 +2,7 @@ name: Python CD Pipeline
 
 on:
   workflow_run:
-    workflows: ["Ci.yml"]   # must match your CI name exactly
+    workflows: ["Python CI Pipeline"]   # must match your CI name exactly
     types:
       - completed
 
