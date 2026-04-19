@@ -1,0 +1,32 @@
+name: Python CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["Ci.yml"]   # must match your CI name exactly
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted   # your Windows runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 🔹 Build Docker image
+      - name: Build Docker Image
+        run: docker build -t calculator-app .
+
+      # 🔹 Stop old container (if exists)
+      - name: Stop old container
+        run: docker stop calculator || exit 0
+
+      # 🔹 Remove old container
+      - name: Remove old container
+        run: docker rm calculator || exit 0
+
+      # 🔹 Run new container
+      - name: Deploy container
+        run: docker run -d -p 80:80 --name calculator calculator-app
