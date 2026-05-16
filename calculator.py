@@ -6,7 +6,7 @@ app = Flask(__name__)
 CORS(app)
 
 
-@app.route("/")
+@app.route("/api/calculate")
 def home():
     return "Calculator App Running"
 
