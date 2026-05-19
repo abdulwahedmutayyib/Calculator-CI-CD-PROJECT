@@ -1,31 +1,55 @@
-name: Python CD Pipeline
-
-on:
-  push:
-    branches: [ "main" ]
+name: Kubernetes CD Pipeline
+    types:
+      - completed
 
 jobs:
   deploy:
+
+    # Only deploy if CI passed
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     runs-on: self-hosted
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔹 Build Docker image
-      - name: Build Docker Image
-        run: docker build -t calculator-app .
+      # ---------------- BACKEND IMAGE ----------------
 
-      # 🔹 Stop old container (ignore if not exists)
-      - name: Stop old container
-        run: docker stop calculator
-        continue-on-error: true
+      - name: Build Backend Docker Image
+        run: |
+          docker build -t wahed1321/calculator-app:latest .
 
-      # 🔹 Remove old container (ignore if not exists)
-      - name: Remove old container
-        run: docker rm calculator
-        continue-on-error: true
+      - name: Push Backend Docker Image
+        run: |
+          docker push wahed1321/calculator-app:latest
 
-      # 🔹 Run new container
-      - name: Deploy container
-        run: docker run -d -p 5000:5000 --name calculator calculator-app
+      # ---------------- FRONTEND IMAGE ----------------
+
+      - name: Build Frontend Docker Image
+        run: |
+          docker build -t wahed1321/calculator-frontend:latest ./frontend
+
+      - name: Push Frontend Docker Image
+        run: |
+          docker push wahed1321/calculator-frontend:latest
+
+      # ---------------- KUBERNETES DEPLOYMENT ----------------
+
+      - name: Apply Kubernetes Files
+        run: |
+          kubectl apply -f k8s/
+
+      - name: Restart Backend Deployment
+        run: |
+          kubectl rollout restart deployment devops-app
+
+      - name: Restart Frontend Deployment
+        run: |
+          kubectl rollout restart deployment frontend-app
+
+      - name: Verify Deployments
+        run: |
+          kubectl get pods
+          kubectl get svc
+          kubectl get ingress
