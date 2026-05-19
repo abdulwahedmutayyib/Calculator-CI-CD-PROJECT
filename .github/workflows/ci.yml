@@ -1,6 +1,5 @@
 # Updated CI Pipeline (`.github/workflows/ci.yml`)
 
-```yaml
 name: Python CI Pipeline
 
 on:
