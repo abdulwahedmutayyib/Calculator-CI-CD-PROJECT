@@ -1,11 +1,14 @@
 name: Kubernetes CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["Python CI Pipeline"]
     types:
       - completed
 
 jobs:
   deploy:
 
-    # Only deploy if CI passed
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     runs-on: self-hosted
@@ -14,8 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ---------------- BACKEND IMAGE ----------------
-
+      # Backend Image
       - name: Build Backend Docker Image
         run: |
           docker build -t wahed1321/calculator-app:latest .
@@ -24,8 +26,7 @@ jobs:
         run: |
           docker push wahed1321/calculator-app:latest
 
-      # ---------------- FRONTEND IMAGE ----------------
-
+      # Frontend Image
       - name: Build Frontend Docker Image
         run: |
           docker build -t wahed1321/calculator-frontend:latest ./frontend
@@ -34,8 +35,7 @@ jobs:
         run: |
           docker push wahed1321/calculator-frontend:latest
 
-      # ---------------- KUBERNETES DEPLOYMENT ----------------
-
+      # Kubernetes Deployment
       - name: Apply Kubernetes Files
         run: |
           kubectl apply -f k8s/
